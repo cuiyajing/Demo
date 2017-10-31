@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- WARNING: Eclipse auto-generated file.
+              Any modifications will be overwritten.
+              To include a user specific buildfile here, simply create one in the same
+              directory with the processing instruction <?eclipse.ant.import?>
+              as the first entry and export the buildfile again. -->
+<project basedir="." default="build" name="Demo">
+    <property environment="env"/>
+	<property name="TOMCAT_HOME" value="ec2-13-58-51-111.us-east-2.compute.amazonaws.com:/opt/tomcat/apache-tomcat-8.5.23"/>
+    <property name="debuglevel" value="source,lines,vars"/>
+    <property name="target" value="1.8"/>
+    <property name="source" value="1.8"/>
+    <path id="Apache Tomcat v8.5 [Apache Tomcat v8.5 (3)].libraryclasspath">
+        <pathelement location="${TOMCAT_HOME}/lib/annotations-api.jar"/>
+        <pathelement location="${TOMCAT_HOME}/lib/catalina-ant.jar"/>
+        <pathelement location="${TOMCAT_HOME}/lib/catalina-ha.jar"/>
+        <pathelement location="${TOMCAT_HOME}/lib/catalina-storeconfig.jar"/>
+        <pathelement location="${TOMCAT_HOME}/lib/catalina-tribes.jar"/>
+        <pathelement location="${TOMCAT_HOME}/lib/catalina.jar"/>
+        <pathelement location="${TOMCAT_HOME}/lib/commons-net-3.6.jar"/>
+        <pathelement location="${TOMCAT_HOME}/lib/ecj-4.6.3.jar"/>
+        <pathelement location="${TOMCAT_HOME}/lib/el-api.jar"/>
+        <pathelement location="${TOMCAT_HOME}/lib/jasper-el.jar"/>
+        <pathelement location="${TOMCAT_HOME}/lib/jasper.jar"/>
+        <pathelement location="${TOMCAT_HOME}/lib/jaspic-api.jar"/>
+        <pathelement location="${TOMCAT_HOME}/lib/jsp-api.jar"/>
+        <pathelement location="${TOMCAT_HOME}/lib/servlet-api.jar"/>
+        <pathelement location="${TOMCAT_HOME}/lib/tomcat-api.jar"/>
+        <pathelement location="${TOMCAT_HOME}/lib/tomcat-coyote.jar"/>
+        <pathelement location="${TOMCAT_HOME}/lib/tomcat-dbcp.jar"/>
+        <pathelement location="${TOMCAT_HOME}/lib/tomcat-i18n-es.jar"/>
+        <pathelement location="${TOMCAT_HOME}/lib/tomcat-i18n-fr.jar"/>
+        <pathelement location="${TOMCAT_HOME}/lib/tomcat-i18n-ja.jar"/>
+        <pathelement location="${TOMCAT_HOME}/lib/tomcat-jdbc.jar"/>
+        <pathelement location="${TOMCAT_HOME}/lib/tomcat-jni.jar"/>
+        <pathelement location="${TOMCAT_HOME}/lib/tomcat-util-scan.jar"/>
+        <pathelement location="${TOMCAT_HOME}/lib/tomcat-util.jar"/>
+        <pathelement location="${TOMCAT_HOME}/lib/tomcat-websocket.jar"/>
+        <pathelement location="${TOMCAT_HOME}/lib/websocket-api.jar"/>
+    </path>
+    <path id="Web App Libraries.libraryclasspath"/>
+    <path id="EAR Libraries.libraryclasspath"/>
+    <path id="Demo.classpath">
+        <pathelement location="build/classes"/>
+        <path refid="Apache Tomcat v8.5 [Apache Tomcat v8.5 (3)].libraryclasspath"/>
+        <path refid="Web App Libraries.libraryclasspath"/>
+        <path refid="EAR Libraries.libraryclasspath"/>
+    </path>
+    <target name="init">
+        <mkdir dir="build/classes"/>
+        <copy includeemptydirs="false" todir="build/classes">
+            <fileset dir="src">
+                <exclude name="**/*.java"/>
+            </fileset>
+        </copy>
+    </target>
+    <target name="clean">
+        <delete dir="build/classes"/>
+    </target>
+    <target depends="clean" name="cleanall"/>
+    <target depends="build-subprojects,build-project" name="build"/>
+    <target name="build-subprojects"/>
+    <target depends="init" name="build-project">
+        <echo message="${ant.project.name}: ${ant.file}"/>
+        <javac debug="true" debuglevel="${debuglevel}" destdir="build/classes" includeantruntime="false" source="${source}" target="${target}">
+            <src path="src"/>
+            <classpath refid="Demo.classpath"/>
+        </javac>
+    </target>
+    <target description="Build all projects which reference this project. Useful to propagate changes." name="build-refprojects"/>
+ 
+	
+  	 <!-- デプロイ用モジュール収集 -->
+      <target name="make-deploy-files">
+          <mkdir dir="build/deploy"/>
+          <copy todir="build/deploy">
+              <fileset dir="WebContent"/>
+          </copy>
+          <copy todir="build/deploy/WEB-INF/classes">
+              <fileset dir="build/classes"/>
+          </copy>
+      </target>     	
+
+    <!--モジュールをSFTPサイトにアップロード-->
+    <property name="sftp_keyfile" value="/home/jenkins/id_rsa.ppk"/>
+
+    <target name="deploy-sftp">
+    	<scp todir="tomcat@ec2-13-58-51-111.us-east-2.compute.amazonaws.com:/opt/tomcat/apache-tomcat-8.5.23/webapps/Demo" keyfile="${sftp_keyfile}" sftp="true" trust="true">
+           <fileset dir="build/deploy">
+    		  <include name="**/*"/>
+           </fileset>
+    	</scp>
+    </target>
+
+    <!--tomcat再起動-->
+	
+    <property name="tomcat_ant_jar" value="${TOMCAT_HOME}/lib/catalina-ant.jar" />
+	
+    <!-- Configure the context path for this application -->
+    <property name="path"     value="/${ant.project.name}"/>
+	
+    <!-- Configure properties to access the application -->
+    <property name="url"      value="http://ec2-13-58-51-111.us-east-2.compute.amazonaws.com:8080/manager/text"/>
+    <property name="username" value="tomcat"/>
+    <property name="password" value="Mz67xg82"/>
+	
+   <!-- Configure the custom Ant tasks for the Manager application -->
+    <taskdef name="deploy"    classname="org.apache.catalina.ant.DeployTask" classpath="${tomcat_ant_jar}"/>
+    <taskdef name="install"   classname="org.apache.catalina.ant.DeployTask" classpath="${tomcat_ant_jar}"/>    
+    <taskdef name="list"      classname="org.apache.catalina.ant.ListTask" classpath="${tomcat_ant_jar}"/>
+    <taskdef name="reload"    classname="org.apache.catalina.ant.ReloadTask" classpath="${tomcat_ant_jar}"/>
+<!--<taskdef name="remove"    classname="org.apache.catalina.ant.RemoveTask" classpath="${tomcat_ant_jar}"/>   --> 
+    <taskdef name="resources" classname="org.apache.catalina.ant.ResourcesTask" classpath="${tomcat_ant_jar}"/>
+<!--<taskdef name="roles"     classname="org.apache.catalina.ant.RolesTask" classpath="${tomcat_ant_jar}"/>    -->
+    <taskdef name="start"     classname="org.apache.catalina.ant.StartTask" classpath="${tomcat_ant_jar}"/>
+    <taskdef name="stop"      classname="org.apache.catalina.ant.StopTask" classpath="${tomcat_ant_jar}"/>
+    <taskdef name="undeploy"  classname="org.apache.catalina.ant.UndeployTask" classpath="${tomcat_ant_jar}"/>
+
+    <target name="tomcat-reload">
+	    <reload url="${url}" username="${username}" password="${password}" path="${path}"/>
+    </target>
+	
+    <target name="deploy" depends="deploy-sftp,tomcat-reload"/>   
+
+</project>
